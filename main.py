@@ -24,9 +24,8 @@ def main() -> None:
         choice = input("Seçim: ").strip()
         if choice == "1":
             try:
-                book = prompt_book()
-                lib.add_book(book)
-                print("✅ Kitap eklendi.")
+            lib.add_book_by_isbn(isbn)
+                print("✅ Kitap eklendi (API).")
             except ValueError as e:
                 print(f"⚠️  Hata: {e}")
         elif choice == "2":
