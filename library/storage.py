@@ -6,8 +6,8 @@ from typing import List, Optional
 
 from library.models import Book
 
-class library:
-    def __init__(self, storage_path: str="library.json") -> None:
+class Library:
+    def __init__(self, storage_path: str = "library.json") -> None:
         self.storage = Path(storage_path)
         self.books: List[Book] = []
         self.load_books()
@@ -37,13 +37,13 @@ class library:
         for b in self.books:
             if b.isbn == isbn:
                 return b
-            return None
+        return None
 
     def add_book(self, book: Book) -> None:
         if self.find_book(book.isbn):
-            raise ValueError("Bu ISBN zaten kayıtlı")
-            self.books.append(book)
-            self.save_books()
+            raise ValueError("Bu ISBN zaten kayıtlı.")
+        self.books.append(book)
+        self.save_books()
     
     def remove_book(self, isbn: str) -> bool:
         target = self.find_book(isbn)
