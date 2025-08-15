@@ -6,6 +6,8 @@ from typing import List, Optional
 
 from library.models import Book
 
+from library.external import fetch_book_by_isbn, OpenLibraryError
+
 class Library:
     def __init__(self, storage_path: str = "library.json") -> None:
         self.storage = Path(storage_path)
@@ -52,3 +54,13 @@ class Library:
         self.books = [b for b in self.books if b.isbn != isbn]
         self.save_books()
         return True
+def add_book_by_isbn(self, isbn:str) -> None:
+    if self.find_book(isbn):
+        raise ValueError("Bu ISBN zaten kayıtlı")
+    
+    try:
+        title, author= fetch_book_by_isb(isbn)
+    except OpenLibraryError as e:
+
+        raise ValueError(str(e)) from e
+        self.add_book(Book(title=title, author=author, isbn=isbn))
