@@ -40,3 +40,10 @@ def test_add_by_isbn_not_found(monkeypatch, tmp_path):
     with pytest.raises(ValueError) as e:
         lib.add_book_by_isbn("0000")
     assert "Kitap bulunamadı" in str(e.value)
+
+# tests/test_api_integration.py içine ek
+
+def test_add_by_isbn_rejects_bad_isbn(tmp_path):
+    lib = Library(tmp_path / "lib.json")
+    with pytest.raises(ValueError):
+        lib.add_book_by_isbn("not-an-isbn")
