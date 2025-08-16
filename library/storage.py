@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional, Union
 
 from library.models import Book
 
@@ -43,11 +43,24 @@ class Library:
                 return b
         return None
 
-    def add_book(self, book: Book) -> None:
-        if self.find_book(book.isbn):
-            raise ValueError("Bu ISBN zaten kayıtlı.")
-        self.books.append(book)
-        self.save_books()
+    def add_book(self, book: Union[Book, str]) -> None:
+        if isinstance(book, Book):
+            if self.find_book(book.isbn):
+                raise ValueError("Bu ISBN zaten kayıtlı.")
+            self.books.append(book)
+            self.save_books()
+        elif isinstance(book, str):
+            isbn = validate_isbn(book)
+            if self.find_book(isbn):
+                raise ValueError("Bu ISBN zaten kayıtlı.")
+            try:
+                title, author = external.fetch_book_by_isbn(isbn)
+            except external.OpenLibraryError as e:
+                raise ValueError(str(e)) from e
+            self.books.append(Book(title=title, author=author, isbn=isbn))
+            self.save_books()
+        else:
+            raise TypeError("add_book expects a Book instance or an ISBN string.")
     
     def remove_book(self, isbn: str) -> bool:
         target = self.find_book(isbn)
