@@ -6,15 +6,15 @@ def test_add_by_isbn_success(monkeypatch, tmp_path):
     # 1) mock: fetch_book_by_isbn sabit değer döndürsün
     from library import external
     def fake_fetch(isbn: str):
-        assert isbn == "9789999999999"
+        assert isbn == "9780306406157"
         return ("Fake Title", "Fake Author")
     monkeypatch.setattr(external, "fetch_book_by_isbn", fake_fetch)
 
     # 2) Library ile deneyelim
     lib = Library(tmp_path / "lib.json")
-    lib.add_book_by_isbn("9789999999999")
+    lib.add_book_by_isbn("9780306406157")
 
-    b = lib.find_book("9789999999999")
+    b = lib.find_book("9780306406157")
     assert b is not None
     assert b.title == "Fake Title"
     assert b.author == "Fake Author"
@@ -38,7 +38,7 @@ def test_add_by_isbn_not_found(monkeypatch, tmp_path):
 
     lib = Library(tmp_path / "lib.json")
     with pytest.raises(ValueError) as e:
-        lib.add_book_by_isbn("0000")
+        lib.add_book_by_isbn("9780140449136")
     assert "Kitap bulunamadı" in str(e.value)
 
 # tests/test_api_integration.py içine ek

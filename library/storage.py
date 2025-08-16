@@ -9,6 +9,7 @@ from library.models import Book
 from library import external
 
 from library.validators import validate_isbn
+
 class Library:
     def __init__(self, storage_path: str = "library.json") -> None:
         self.storage = Path(storage_path)
@@ -57,11 +58,11 @@ class Library:
         return True
 
     def add_book_by_isbn(self, raw_isbn: str) -> None:
-    isbn = validate_isbn(raw_isbn)  # ← önce doğrula + normalize et
-    if self.find_book(isbn):
-        raise ValueError("Bu ISBN zaten kayıtlı.")
-    try:
-        title, author = external.fetch_book_by_isbn(isbn)
-    except external.OpenLibraryError as e:
-        raise ValueError(str(e)) from e
-    self.add_book(Book(title=title, author=author, isbn=isbn))
+        isbn = validate_isbn(raw_isbn)  # önce doğrula + normalize et
+        if self.find_book(isbn):
+            raise ValueError("Bu ISBN zaten kayıtlı.")
+        try:
+            title, author = external.fetch_book_by_isbn(isbn)
+        except external.OpenLibraryError as e:
+            raise ValueError(str(e)) from e
+        self.add_book(Book(title=title, author=author, isbn=isbn))

@@ -1,21 +1,14 @@
 # main.py
 from library.storage import Library
-from library.models import Book
 
 MENU = """
 --- Kütüphane ---
-1. Kitap Ekle
+1. Kitap Ekle (ISBN ile otomatik)
 2. Kitap Sil
 3. Kitapları Listele
 4. Kitap Ara
 5. Çıkış
 """
-
-def prompt_book() -> Book:
-    title = input("Başlık: ").strip()
-    author = input("Yazar: ").strip()
-    isbn = input("ISBN: ").strip()
-    return Book(title=title, author=author, isbn=isbn)
 
 def main() -> None:
     lib = Library("library.json")
@@ -23,8 +16,9 @@ def main() -> None:
         print(MENU)
         choice = input("Seçim: ").strip()
         if choice == "1":
+            isbn = input("ISBN: ").strip()
             try:
-            lib.add_book_by_isbn(isbn)
+                lib.add_book_by_isbn(isbn)
                 print("✅ Kitap eklendi (API).")
             except ValueError as e:
                 print(f"⚠️  Hata: {e}")
