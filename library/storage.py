@@ -3,12 +3,12 @@ from __future__ import annotations
 import json
 from pathlib import Path
 from typing import List, Optional, Union
-
+from fastapi import HTTPException, Depends
 from library.models import Book
 
 from library import external
 
-from library.validators import validate_isbn
+from library.validators import validate_isbn, normalize_isbn
 
 class Library:
     def __init__(self, storage_path: str = "library.json") -> None:
@@ -38,8 +38,9 @@ class Library:
         return list(self.books)
     
     def find_book(self, isbn: str) -> Optional[Book]:
+        target = normalize_isbn(isbn)
         for b in self.books:
-            if b.isbn == isbn:
+            if normalize_isbn(b.isbn) == target:
                 return b
         return None
 
@@ -63,12 +64,13 @@ class Library:
             raise TypeError("add_book expects a Book instance or an ISBN string.")
     
     def remove_book(self, isbn: str) -> bool:
-        target = self.find_book(isbn)
-        if not target:
-            return False
-        self.books = [b for b in self.books if b.isbn != isbn]
-        self.save_books()
-        return True
+        target = normalize_isbn(isbn)
+        before = len(self.books)
+        self.books = [b for b in self.books if normalize_isbn(b.isbn) != target]
+        if len(self.books) < before:
+            self.save_books()
+            return True
+        return False
 
     def add_book_by_isbn(self, raw_isbn: str) -> None:
         isbn = validate_isbn(raw_isbn)  # önce doğrula + normalize et
@@ -79,3 +81,31 @@ class Library:
         except external.OpenLibraryError as e:
             raise ValueError(str(e)) from e
         self.add_book(Book(title=title, author=author, isbn=isbn))
+    
+    def update_book(self, isbn: str, title: Optional[str] = None, author: Optional[str] = None):
+
+        # 1) Boş payload kontrolü
+        if title is None and author is None:
+            raise ValueError("Güncelleme için en az bir alan (title/author) göndermelisin.")
+        
+        # 2) Hedefi normalize ederek bul (tire/boşluk farkları önemli olmasın)
+        target = normalize_isbn(isbn)
+        book = self.find_book(target)
+        if book is None:
+            raise ValueError("Kitap bulunamadı.")
+
+        # 3) Değerleri kırp ve uygula
+        if isinstance(title, str):
+            title = title.strip()
+            if title:
+                book.title = title
+        if isinstance(author, str):
+            author = author.strip()
+            if author:
+                book.author = author
+        
+        # 4) Diske yaz ve güncellenmiş nesneyi döndür
+        self.save_books()
+        return book
+        
+        
