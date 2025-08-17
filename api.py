@@ -37,3 +37,22 @@ def get_library() -> Library:
 def list_books(lib: Library = Depends(get_library)):
     books = lib.list_books()
     return [BookOut(title=b.title, author=b.author, isbn=b.isbn) for b in books]
+
+# --- Pydantic giriş modeli ---
+class ISBNIn(BaseModel):
+    isbn: str
+
+# --- POST /books ---
+from fastapi import HTTPException
+
+@app.post("/books", response_model=BookOut, status_code=201)
+def add_book(payload: ISBNIn, lib: Library = Depends(get_library)):
+    try:
+        # Stage-2: add_book artık ISBN (str) da kabul ediyor
+        lib.add_book(payload.isbn)
+        b = lib.find_book(payload.isbn)
+        assert b is not None 
+        return BookOut(title=b.title, author=b.author, isbn=b.isbn)
+    except ValueError as e:
+         # Geçersiz ISBN, bulunamadı(404), ağ hatası vb. durumlar ValueError mesajıyla gelir
+         raise HTTPException(status_code=400, detail=str(e)) from e
