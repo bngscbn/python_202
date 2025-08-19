@@ -4,7 +4,6 @@ from fastapi import FastAPI, Depends, HTTPException
 from pydantic import BaseModel
 from typing import Optional
 from typing import List
-from pydantic import BaseModel
 from library.storage import Library
 from library.models import Book
 from library.validators import validate_isbn, normalize_isbn
@@ -15,7 +14,7 @@ app = FastAPI(title="Py202 Library API", version="1.0.0")
 def root():
     return {
         "message": "Py202 Library API çalışıyor. Dokümantasyon için /docs",
-        "endpoints": ["GET /books", "POST /books", "DELETE /books/{isbn}"]
+        "endpoints": ["GET /books", "POST /books", "DELETE /books/{isbn}", "PUT /books/{isbn}"]
     }
 
 @app.get("/health")
@@ -44,8 +43,6 @@ class ISBNIn(BaseModel):
     isbn: str
 
 # --- POST /books ---
-from fastapi import HTTPException
-
 @app.post("/books", response_model=BookOut, status_code=201)
 def add_book(payload: ISBNIn, lib: Library = Depends(get_library)):
     try:
@@ -78,7 +75,7 @@ class BookUpdateIn(BaseModel):
     title: Optional[str] = None
     author: Optional[str] = None
 
-@app.put("/book/{isbn}", response_model=BookOut)
+@app.put("/books/{isbn}", response_model=BookOut)
 def update_book(isbn: str, payload: BookUpdateIn, lib: Library = Depends(get_library)):
     """
     Belirtilen ISBN'li kitabın title/author alanlarını günceller.
@@ -99,6 +96,6 @@ def update_book(isbn: str, payload: BookUpdateIn, lib: Library = Depends(get_lib
     # 3) Güncelle ve sonucu döndür
     try:
         updated = lib.update_book(key, title=payload.title, author=payload.author)
-        return BookOut(title=updated.title, author=update.author, isbn=update.isbn)
+        return BookOut(title=updated.title, author=updated.author, isbn=updated.isbn)
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e)) from e 
+        raise HTTPException(status_code=400, detail=str(e)) from e
